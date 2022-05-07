@@ -1,3 +1,5 @@
+import "deck.rol";
+
 static GAME_OVER: bool;
 static RNG: u64;
 static SCORE_BUF: [u8; 10];
@@ -5,7 +7,7 @@ static PLAYERS: [Player; 4];
 static CURRENT_PLAYER: usize;
 static CURRENT_GAME_PHASE: GamePhase;
 static BIDS: [Bid; 25];
-static BIDS_SIZE: usize; // less than 0
+static BIDS_SIZE: usize;
 static BID_STRING_BUF: [u8; 100];
 static CLUBS_HAND_STRING_BUF: [u8; 100];
 static DIAMONDS_HAND_STRING_BUF: [u8; 100];
@@ -84,8 +86,18 @@ proc rand() -> u64 {
    return RNG;
 }
 
+// Both are inclusive
 proc rand_range(rand_min: u64, rand_max: u64) -> u64 {
    return rand() % (rand_max + 1 - rand_min) + rand_min;
+}
+
+proc shuffle(cards: &[Card; 52]) {
+   for i in 0..(cards~.length - 2) {
+      let j = rand_range(i extend u64, (cards~.length - 1) extend u64) truncate usize;
+      let card_i = cards~[i];
+      cards~[i] = cards~[j];
+      cards~[j] = cards~[i];
+   }
 }
 
 proc one_in(x: u64) -> bool {
