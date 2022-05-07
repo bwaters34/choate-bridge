@@ -7,6 +7,10 @@ static CURRENT_GAME_PHASE: GamePhase;
 static BIDS: [Bid; 25];
 static BIDS_SIZE: usize; // less than 0
 static BID_STRING_BUF: [u8; 100];
+static CLUBS_HAND_STRING_BUF: [u8; 100];
+static DIAMONDS_HAND_STRING_BUF: [u8; 100];
+static HEARTS_HAND_STRING_BUF: [u8; 100];
+static SPADES_HAND_STRING_BUF: [u8; 100];
 
 enum Suit {
   Clubs,
@@ -139,7 +143,7 @@ proc deal_cards() {
            suit: Suit::Spades,
            value: Value::Ace,
          },Card {
-           suit: Suit::Spades,
+           suit: Suit::Diamonds,
            value: Value::Queen,
          }],
        hand_size: 13,
@@ -192,6 +196,29 @@ proc card_value_to_u8(value: Value) -> u8 {
   return "X".pointer~;
 }
 
+// haha, reimplementing stdlib
+// assumes src and dest has size of at least n. Behavior otherwise is undefined.
+proc memcpy(dest: &u8, src: &u8, n: usize) {
+  for i in 0..n {
+    let dest_address = (dest transmute usize + i) transmute &u8; 
+    let src_address = (src transmute usize + i) transmute &u8; 
+    dest_address~ = src_address~;
+  }
+}
+
+// assumes dest has size of at least n left in the buffer. Behavior otherwise is undefined.
+proc str_append(dest: &String, src: String) {
+  memcpy((dest~.pointer transmute usize + dest~.length) transmute &u8, src.pointer, src.length);
+  dest~.length = dest~.length + src.length;
+}
+
+// Assumes str still has room in the buffer, undefined otherwise.
+proc append_char_to_str(char: u8, str: &String) {
+  let pointer_to_end_of_string = (str~.pointer transmute usize + str~.length) transmute &u8;
+  pointer_to_end_of_string~= char;
+  str~.length = str~.length +1;
+}
+
 proc draw_player_hand(player_index: usize) {
   let hand: PlayerHand = PLAYERS[player_index].hand;
   trace("drawing player hand");
@@ -199,13 +226,55 @@ proc draw_player_hand(player_index: usize) {
     length: 0,
     pointer: &BID_STRING_BUF[0],
   };
+  let clubs = String {
+    length: 0,
+    pointer: &CLUBS_HAND_STRING_BUF[0],
+  };
+  append_char_to_str("C".pointer~, &clubs);
+  append_char_to_str(" ".pointer~, &clubs);
+  
+  let diamonds = String {
+    length: 0,
+    pointer: &DIAMONDS_HAND_STRING_BUF[0],
+  };
+  append_char_to_str("D".pointer~, &diamonds);
+  append_char_to_str(" ".pointer~, &diamonds);
+  let spades = String {
+      length: 0,
+      pointer: &SPADES_HAND_STRING_BUF[0],
+  };
+  append_char_to_str("S".pointer~, &spades);
+  append_char_to_str(" ".pointer~, &spades);
+  let hearts = String {
+      length: 0,
+      pointer: &HEARTS_HAND_STRING_BUF[0],
+  };
+  append_char_to_str("H".pointer~, &hearts);
+  append_char_to_str(" ".pointer~, &hearts);
 
   for i in 0..hand.hand_size {
-    BID_STRING_BUF[i] = card_value_to_u8(hand.hand[i].value);
-    bid_ui_string.length = bid_ui_string.length +1;
+    if hand.hand[i].suit == Suit::Clubs {
+      append_char_to_str(card_value_to_u8(hand.hand[i].value), &clubs);
+    }
+    if hand.hand[i].suit == Suit::Diamonds {
+      append_char_to_str(card_value_to_u8(hand.hand[i].value), &diamonds);
+    }
+     if hand.hand[i].suit == Suit::Hearts {
+      append_char_to_str(card_value_to_u8(hand.hand[i].value), &hearts);
+    }
+    if hand.hand[i].suit == Suit::Spades {
+      append_char_to_str(card_value_to_u8(hand.hand[i].value), &spades);
+    }
   }
+  str_append(&bid_ui_string, clubs);
+  str_append(&bid_ui_string, "\n");
+  str_append(&bid_ui_string, diamonds);
+  str_append(&bid_ui_string, "\n");
+  str_append(&bid_ui_string, hearts);
+  str_append(&bid_ui_string, "\n");
+  str_append(&bid_ui_string, spades);
   trace(bid_ui_string);
-  text(bid_ui_string, 2, 2);
+  text(bid_ui_string, 2, 124);
 }
 
 proc start() {
