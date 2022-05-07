@@ -109,55 +109,17 @@ proc reset_game() {
    RNG = 2;
    CURRENT_PLAYER = 0;
    CURRENT_GAME_PHASE = GamePhase::Bidding;
-   // Deal out cards. For now, deal everyone the ace of spades.
    deal_cards();
 }
 
 proc deal_cards() {
+  let deck = DECK;
+  shuffle(&deck);
  for i in 0..PLAYERS.length {
      PLAYERS[i] = Player {
        id: i transmute u32,
        hand: PlayerHand {
-         hand: [Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Spades,
-           value: Value::Ace,
-         },Card {
-           suit: Suit::Diamonds,
-           value: Value::Queen,
-         }],
+         hand: [deck[0 + i * 13],deck[1 + i * 13],deck[2 + i * 13],deck[3 + i * 13],deck[4 + i * 13],deck[5 + i * 13],deck[6 + i * 13],deck[7 + i * 13],deck[8 + i * 13],deck[9 + i * 13],deck[10 + i * 13],deck[11 + i * 13],deck[12 + i * 13],],
        hand_size: 13,
        },
        seat: Seat::North,
@@ -212,8 +174,8 @@ proc card_value_to_u8(value: Value) -> u8 {
 // assumes src and dest has size of at least n. Behavior otherwise is undefined.
 proc memcpy(dest: &u8, src: &u8, n: usize) {
   for i in 0..n {
-    let dest_address = (dest transmute usize + i) transmute &u8; 
-    let src_address = (src transmute usize + i) transmute &u8; 
+    let dest_address = (dest transmute usize + i) transmute &u8;
+    let src_address = (src transmute usize + i) transmute &u8;
     dest_address~ = src_address~;
   }
 }
@@ -244,7 +206,7 @@ proc draw_player_hand(player_index: usize) {
   };
   append_char_to_str("C".pointer~, &clubs);
   append_char_to_str(" ".pointer~, &clubs);
-  
+
   let diamonds = String {
     length: 0,
     pointer: &DIAMONDS_HAND_STRING_BUF[0],
