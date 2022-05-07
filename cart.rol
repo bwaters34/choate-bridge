@@ -2,12 +2,24 @@ static GAME_OVER: bool;
 static RNG: u64;
 static SCORE_BUF: [u8; 10];
 static PLAYERS: [Player; 4];
+static CURRENT_PLAYER: usize;
+static CURRENT_GAME_PHASE: GamePhase;
+static BIDS: [Bid; 25];
+static BIDS_SIZE: usize; // less than 0
 
 enum Suit {
   Clubs,
   Diamonds,
   Hearts,
   Spades,
+}
+
+enum BidSuit {
+  Clubs,
+  Diamonds,
+  Hearts,
+  Spades,
+  NoTrump
 }
 
 enum Value {
@@ -49,6 +61,17 @@ struct Player {
   seat: Seat,
 }
 
+enum GamePhase {
+  Bidding,
+  Playing,
+  GameOver,
+}
+
+struct Bid {
+  u32: Value, // 1 - 7
+  suit: BidSuit,
+}
+
 proc rand() -> u64 {
    RNG = RNG ^ (RNG << 13);
    RNG = RNG ^ (RNG >> 7);
@@ -67,8 +90,10 @@ proc one_in(x: u64) -> bool {
 proc reset_game() {
    GAME_OVER = false;
    RNG = 2;
+   CURRENT_PLAYER = 0;
+   CURRENT_GAME_PHASE = GamePhase::Bidding;
    // Deal out cards. For now, deal everyone the ace of spades.
-  
+   deal_cards();
 }
 
 proc deal_cards() {
@@ -129,23 +154,29 @@ proc start() {
    reset_game();
 }
 
-
-
 proc update() {
-   if GAME_OVER {
+   if CURRENT_GAME_PHASE == GamePhase::GameOver {
+     trace("game is over");
+   }
+   else if CURRENT_GAME_PHASE == GamePhase::Bidding {
+     trace("bidding");
+     // for the player whose turn it is, if they made an input on the last frame
+     // update the bid
+     //
+     // draw bid UI
+   }
+   else if CURRENT_GAME_PHASE == GamePhase::Playing {
+     trace("playing");
    }
 
+
+  
 
    // Handle input
    let button_pressed = (GAMEPADS~[0] & BUTTON_1) > 0;
    let mouse_pressed = (MOUSE_BUTTONS~ & MOUSE_LEFT) > 0;
    // Draw world
    {
-   }
 
-   // Draw UI
-   {
-      text("SCORE: ", 2, 2);
-      text(int_to_string(100  , &SCORE_BUF), 47, 2);
    }
 }
