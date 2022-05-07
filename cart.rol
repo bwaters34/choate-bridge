@@ -6,6 +6,7 @@ static CURRENT_PLAYER: usize;
 static CURRENT_GAME_PHASE: GamePhase;
 static BIDS: [Bid; 25];
 static BIDS_SIZE: usize; // less than 0
+static BID_STRING_BUF: [u8; 100];
 
 enum Suit {
   Clubs,
@@ -68,7 +69,7 @@ enum GamePhase {
 }
 
 struct Bid {
-  u32: Value, // 1 - 7
+  value: u32, // 1 - 7
   suit: BidSuit,
 }
 
@@ -139,13 +140,72 @@ proc deal_cards() {
            value: Value::Ace,
          },Card {
            suit: Suit::Spades,
-           value: Value::Ace,
+           value: Value::Queen,
          }],
-       hand_size: 1,
+       hand_size: 13,
        },
        seat: Seat::North,
      };
    }
+}
+
+proc card_value_to_u8(value: Value) -> u8 {
+  if value == Value::Ace {
+    return "A".pointer~;
+  }
+  if value == Value::Two {
+    return "2".pointer~;
+  }
+  if value == Value::Three {
+    return "3".pointer~;
+  }
+  if value == Value::Four {
+    return "4".pointer~;
+  }
+  if value == Value::Five {
+    return "5".pointer~;
+  }
+  if value == Value::Six {
+    return "6".pointer~;
+  }
+  if value == Value::Seven {
+    return "7".pointer~;
+  }
+  if value == Value::Eight {
+    return "8".pointer~;
+  }
+  if value == Value::Nine {
+    return "9".pointer~;
+  }
+  if value == Value::Ten {
+    return "10".pointer~;
+  }
+  if value == Value::Jack {
+    return "J".pointer~;
+  }
+  if value == Value::Queen {
+    return "Q".pointer~;
+  }
+  if value == Value::King {
+    return "K".pointer~;
+  }
+  return "X".pointer~;
+}
+
+proc draw_player_hand(player_index: usize) {
+  let hand: PlayerHand = PLAYERS[player_index].hand;
+  trace("drawing player hand");
+  let bid_ui_string = String {
+    length: 0,
+    pointer: &BID_STRING_BUF[0],
+  };
+
+  for i in 0..hand.hand_size {
+    BID_STRING_BUF[i] = card_value_to_u8(hand.hand[i].value);
+    bid_ui_string.length = bid_ui_string.length +1;
+  }
+  trace(bid_ui_string);
+  text(bid_ui_string, 2, 2);
 }
 
 proc start() {
@@ -160,17 +220,15 @@ proc update() {
    }
    else if CURRENT_GAME_PHASE == GamePhase::Bidding {
      trace("bidding");
-     // for the player whose turn it is, if they made an input on the last frame
-     // update the bid
+     // for the player whose turn it is, if they made an input on the last frame:
+     //   update the bid
      //
      // draw bid UI
+     draw_player_hand(CURRENT_PLAYER);
    }
    else if CURRENT_GAME_PHASE == GamePhase::Playing {
      trace("playing");
    }
-
-
-  
 
    // Handle input
    let button_pressed = (GAMEPADS~[0] & BUTTON_1) > 0;
