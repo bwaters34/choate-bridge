@@ -26,11 +26,10 @@ enum BidSuit {
   Diamonds,
   Hearts,
   Spades,
-  NoTrump
+  NoTrump,
 }
 
 enum Value {
-  Ace,
   Two,
   Three,
   Four,
@@ -41,13 +40,58 @@ enum Value {
   Nine,
   Ten,
   Jack,
-  King,
   Queen,
+  King,
+  Ace,
+}
+
+proc value_to_int(v: Value) -> u8 {
+   if (v == Value::Two) {
+      return 2;
+   } else if (v == Value::Three) {
+      return 3;
+   } else if (v == Value::Four) {
+      return 4;
+   } else if (v == Value::Five) {
+      return 5;
+   } else if (v == Value::Six) {
+      return 6;
+   } else if (v == Value::Seven) {
+      return 7;
+   } else if (v == Value::Eight) {
+      return 8;
+   } else if (v == Value::Nine) {
+      return 9;
+   } else if (v == Value::Ten) {
+      return 10;
+   } else if (v == Value::Jack) {
+      return 11;
+   } else if (v == Value::Queen) {
+      return 12;
+   } else if (v == Value::King) {
+      return 13;
+   } else if (v == Value::Ace) {
+      return 14;
+   }
+   unreachable();
+   return 0;
 }
 
 struct Card {
   suit: Suit,
   value: Value,
+}
+
+proc compare_card(a: Card, b: Card) -> i8 {
+   // note: suits are not compared
+   let a_val = value_to_int(a.value);
+   let b_val = value_to_int(b.value);
+   if a_val == b_val {
+      return 0;
+   } else if a_val < b_val {
+      return -1;
+   }
+   return 1;
 }
 
 struct PlayerHand {
@@ -91,6 +135,10 @@ proc rand_range(rand_min: u64, rand_max: u64) -> u64 {
    return rand() % (rand_max + 1 - rand_min) + rand_min;
 }
 
+proc one_in(x: u64) -> bool {
+   return rand_range(0, x - 1) == 0;
+}
+
 proc shuffle(cards: &[Card; 52]) {
    for i in 0..(cards~.length - 2) {
       let j = rand_range(i extend u64, (cards~.length - 1) extend u64) truncate usize;
@@ -100,8 +148,23 @@ proc shuffle(cards: &[Card; 52]) {
    }
 }
 
-proc one_in(x: u64) -> bool {
-   return rand_range(0, x - 1) == 0;
+proc sort_hand(cards: &[Card; 13]) {
+   let len = cards~.length;
+   loop {
+      if (len <= 1) {
+         break;
+      }
+      let new_len: usize = 0;
+      for i in 1..len {
+         if compare_card(cards~[i-1], cards~[i]) > 0 {
+            let tmp = cards~[i - 1];
+            cards~[i - 1] = cards~[i];
+            cards~[i] = tmp;
+            new_len = i;
+         }
+      }
+      len = new_len;
+   }
 }
 
 proc reset_game() {
@@ -124,6 +187,7 @@ proc deal_cards() {
        },
        seat: Seat::North,
      };
+     sort_hand(&PLAYERS[i].hand.hand);
    }
 }
 
@@ -156,7 +220,7 @@ proc card_value_to_u8(value: Value) -> u8 {
     return "9".pointer~;
   }
   if value == Value::Ten {
-    return "10".pointer~;
+    return "T".pointer~;
   }
   if value == Value::Jack {
     return "J".pointer~;
