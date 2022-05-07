@@ -13,6 +13,7 @@ static CLUBS_HAND_STRING_BUF: [u8; 100];
 static DIAMONDS_HAND_STRING_BUF: [u8; 100];
 static HEARTS_HAND_STRING_BUF: [u8; 100];
 static SPADES_HAND_STRING_BUF: [u8; 100];
+static PREVIOUS_GAMEPADS: [u8; 4];
 
 enum Suit {
   Clubs,
@@ -172,6 +173,7 @@ proc reset_game() {
    RNG = 2;
    CURRENT_PLAYER = 0;
    CURRENT_GAME_PHASE = GamePhase::Bidding;
+   PREVIOUS_GAMEPADS = [0,0,0,0];
    deal_cards();
 }
 
@@ -189,6 +191,22 @@ proc deal_cards() {
      };
      sort_hand(&PLAYERS[i].hand.hand);
    }
+}
+
+proc seat_to_str(seat: Seat) -> String {
+  if seat == Seat::North {
+    return "N";
+  }
+  if seat == Seat::East {
+    return "E";
+  }
+  if seat == Seat::South {
+    return "S";
+  }
+  if seat == Seat::West {
+    return "W";
+  }
+  return "?";
 }
 
 proc card_value_to_u8(value: Value) -> u8 {
@@ -257,9 +275,13 @@ proc append_char_to_str(char: u8, str: &String) {
   str~.length = str~.length +1;
 }
 
+proc draw_player_seat(player_index: usize) {
+  let seat: Seat = PLAYERS[player_index].seat;
+  text(seat_to_str(seat), 152, 152); 
+}
+
 proc draw_player_hand(player_index: usize) {
   let hand: PlayerHand = PLAYERS[player_index].hand;
-  trace("drawing player hand");
   let bid_ui_string = String {
     length: 0,
     pointer: &BID_STRING_BUF[0],
@@ -311,7 +333,6 @@ proc draw_player_hand(player_index: usize) {
   str_append(&bid_ui_string, hearts);
   str_append(&bid_ui_string, "\n");
   str_append(&bid_ui_string, spades);
-  trace(bid_ui_string);
   text(bid_ui_string, 2, 124);
 }
 
@@ -326,20 +347,32 @@ proc update() {
      trace("game is over");
    }
    else if CURRENT_GAME_PHASE == GamePhase::Bidding {
-     trace("bidding");
+    //  trace("bidding");
      // for the player whose turn it is, if they made an input on the last frame:
      //   update the bid
      //
-     // draw bid UI
-     draw_player_hand(CURRENT_PLAYER);
+    // Handle input
+    let button_pressed = (GAMEPADS~[CURRENT_PLAYER] & BUTTON_1) > 0;
+    // draw bid UI
+    draw_player_hand(CURRENT_PLAYER);
+    draw_player_seat(CURRENT_PLAYER);
+    let previous = PREVIOUS_GAMEPADS[CURRENT_PLAYER];
+    let gamepad = GAMEPADS~[CURRENT_PLAYER];
+    // Only the buttons that were pressed down this frame
+    let pressed_this_frame = gamepad & (gamepad ^ previous);
+    PREVIOUS_GAMEPADS[CURRENT_PLAYER] = gamepad;
+    if pressed_this_frame & BUTTON_1 != 0 {
+        trace("button 1 was just pressed!");
+    }
+    if pressed_this_frame & BUTTON_RIGHT != 0 {
+        trace("button right was just pressed!");
+    }
    }
    else if CURRENT_GAME_PHASE == GamePhase::Playing {
      trace("playing");
    }
 
-   // Handle input
-   let button_pressed = (GAMEPADS~[0] & BUTTON_1) > 0;
-   let mouse_pressed = (MOUSE_BUTTONS~ & MOUSE_LEFT) > 0;
+ 
    // Draw world
    {
 
