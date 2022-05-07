@@ -1,6 +1,7 @@
 static GAME_OVER: bool;
 static RNG: u64;
 static SCORE_BUF: [u8; 10];
+static PLAYERS: [Player; 4];
 
 enum Suit {
   Clubs,
@@ -10,7 +11,7 @@ enum Suit {
 }
 
 enum Value {
-  One,
+  Ace,
   Two,
   Three,
   Four,
@@ -28,6 +29,24 @@ enum Value {
 struct Card {
   suit: Suit,
   value: Value,
+}
+
+struct PlayerHand {
+  hand: [Card; 13],
+  hand_size: usize,
+}
+
+enum Seat {
+  North,
+  East,
+  South,
+  West,
+}
+
+struct Player {
+  id: u32,
+  hand: PlayerHand,
+  seat: Seat,
 }
 
 proc rand() -> u64 {
@@ -48,6 +67,60 @@ proc one_in(x: u64) -> bool {
 proc reset_game() {
    GAME_OVER = false;
    RNG = 2;
+   // Deal out cards. For now, deal everyone the ace of spades.
+  
+}
+
+proc deal_cards() {
+ for i in 0..PLAYERS.length {
+     PLAYERS[i] = Player {
+       id: i transmute u32,
+       hand: PlayerHand {
+         hand: [Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         },Card {
+           suit: Suit::Spades,
+           value: Value::Ace,
+         }],
+       hand_size: 1,
+       },
+       seat: Seat::North,
+     };
+   }
 }
 
 proc start() {
@@ -56,9 +129,12 @@ proc start() {
    reset_game();
 }
 
+
+
 proc update() {
    if GAME_OVER {
    }
+
 
    // Handle input
    let button_pressed = (GAMEPADS~[0] & BUTTON_1) > 0;
