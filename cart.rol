@@ -96,7 +96,7 @@ proc shuffle(cards: &[Card; 52]) {
       let j = rand_range(i extend u64, (cards~.length - 1) extend u64) truncate usize;
       let card_i = cards~[i];
       cards~[i] = cards~[j];
-      cards~[j] = cards~[i];
+      cards~[j] = card_i;
    }
 }
 
